@@ -159,18 +159,8 @@ fi
 
 # Set device names based on kernel version
 case $KERNEL_PREFIX in
-  "4.19")
-    device.name1=device1_4.19
-    device.name2=device2_4.19
-    ;;
-  "5.4")
-    device.name1=device1_5.4
-    device.name2=device2_5.4
-    ;;
   "5.10")
-    device.name1=device1_5.10
-    device.name2=device2_5.10
-    device.name3=device3_5.10
+    device.name1=garnet
     ;;
   "5.15")
     device.name1=topaz

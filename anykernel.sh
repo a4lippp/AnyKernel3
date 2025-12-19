@@ -92,12 +92,6 @@ if echo "$CURRENT_KERNEL" | grep -q "5.10"; then
 elif echo "$CURRENT_KERNEL" | grep -q "5.15"; then
   DETECTED_VERSION="5.15"
   ui_print "Detected: Kernel 5.15"
-elif echo "$CURRENT_KERNEL" | grep -q "6.1"; then
-  DETECTED_VERSION="6.1"
-  ui_print "Detected: Kernel 6.1"
-elif echo "$CURRENT_KERNEL" | grep -q "6.6"; then
-  DETECTED_VERSION="6.6"
-  ui_print "Detected: Kernel 6.6"
 else
   DETECTED_VERSION="unknown"
   ui_print "Warning: Could not detect kernel version"

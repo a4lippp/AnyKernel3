@@ -1,5 +1,6 @@
 ### AnyKernel3 Ramdisk Mod Script
 ## osm0sis @ xda-developers
+
 ### AnyKernel setup
 # global properties
 properties() { '
@@ -14,6 +15,7 @@ device.name2=tapas
 device.name3=sapphiren
 device.name4=sapphire
 device.name5=xun
+device.name6=creek
 supported.versions=13-16
 supported.patchlevels=
 supported.vendorpatchlevels=
@@ -30,37 +32,31 @@ no_magisk_check=1
 # import functions/variables and setup patching
 . tools/ak3-core.sh
 
-# Kernel type selection
+# Clear input buffer function
+clear_input() {
+  pkill getevent 2>/dev/null
+  sleep 0.5
+  timeout 0.1 getevent -qlc 1 2>/dev/null || true
+}
+
+# Kernel type selection (GKI vs CLO)
 choose_kernel_type() {
+  clear_input
   ui_print " "
-  ui_print "Kernel Type:"
+  ui_print "Select Kernel Variant:"
   ui_print "  Volume + : GKI"
   ui_print "  Volume - : CLO"
   ui_print " "
   
   while true; do
-    input=$(getevent -qlc 1 2>/dev/null | grep -E "KEY_VOLUME(UP|DOWN)")
+    input=$(timeout 30 getevent -qlc 1 2>/dev/null | grep -E "KEY_VOLUME(UP|DOWN)")
     case "$input" in
-      *KEY_VOLUMEUP*) return 1 ;;
-      *KEY_VOLUMEDOWN*) return 2 ;;
-    esac
-    sleep 0.1
-  done
-}
-
-# KSU selection
-choose_ksu() {
-  ui_print " "
-  ui_print "KernelSU Support:"
-  ui_print "  Volume + : With KSU"
-  ui_print "  Volume - : Without KSU"
-  ui_print " "
-  
-  while true; do
-    input=$(getevent -qlc 1 2>/dev/null | grep -E "KEY_VOLUME(UP|DOWN)")
-    case "$input" in
-      *KEY_VOLUMEUP*) return 1 ;;
-      *KEY_VOLUMEDOWN*) return 2 ;;
+      *KEY_VOLUMEUP*) 
+        clear_input
+        return 1 ;;
+      *KEY_VOLUMEDOWN*) 
+        clear_input
+        return 2 ;;
     esac
     sleep 0.1
   done
@@ -76,17 +72,8 @@ else
   ui_print "Selected: CLO"
 fi
 
-choose_ksu
-if [ $? -eq 1 ]; then
-  ksu_type="ksu"
-  ui_print "Selected: With KSU"
-else
-  ksu_type="noksu"
-  ui_print "Selected: Without KSU"
-fi
-
 # Move selected kernel
-selected_kernel="Image.${kernel_type}.${ksu_type}"
+selected_kernel="Image.${kernel_type}"
 if [ -f "$AKHOME/$selected_kernel" ]; then
   ui_print "Flashing: $selected_kernel"
   mv "$AKHOME/$selected_kernel" "$AKHOME/Image"
@@ -102,5 +89,4 @@ else
     dump_boot
     write_boot
 fi
-
 ## end boot install

@@ -29,102 +29,20 @@ ramdisk_compression=auto
 patch_vbmeta_flag=auto
 no_magisk_check=1
 
-# import functions/variables and setup patching
+# import functions/variables and setup patching - see for reference (DO NOT REMOVE)
 . tools/ak3-core.sh
 
-# Clear input buffer function
-clear_input() {
-  # Kill any existing getevent processes
-  pkill getevent 2>/dev/null
-  # Wait a moment and clear any buffered input
-  sleep 0.5
-  # Flush input buffer
-  timeout 0.1 getevent -qlc 1 2>/dev/null || true
-}
-
-# Kernel type selection
-choose_kernel_type() {
-  clear_input
-  ui_print " "
-  ui_print "Kernel Type:"
-  ui_print "  Volume + : GKI"
-  ui_print "  Volume - : CLO"
-  ui_print " "
-  
-  while true; do
-    input=$(timeout 30 getevent -qlc 1 2>/dev/null | grep -E "KEY_VOLUME(UP|DOWN)")
-    case "$input" in
-      *KEY_VOLUMEUP*) 
-        clear_input
-        return 1 ;;
-      *KEY_VOLUMEDOWN*) 
-        clear_input
-        return 2 ;;
-    esac
-    sleep 0.1
-  done
-}
-
-# KSU selection
-choose_ksu() {
-  clear_input
-  ui_print " "
-  ui_print "KernelSU Support:"
-  ui_print "  Volume + : With KSU"
-  ui_print "  Volume - : Without KSU"
-  ui_print " "
-  
-  while true; do
-    input=$(timeout 30 getevent -qlc 1 2>/dev/null | grep -E "KEY_VOLUME(UP|DOWN)")
-    case "$input" in
-      *KEY_VOLUMEUP*) 
-        clear_input
-        return 1 ;;
-      *KEY_VOLUMEDOWN*) 
-        clear_input
-        return 2 ;;
-    esac
-    sleep 0.1
-  done
-}
-
-# Handle selection
-choose_kernel_type
-if [ $? -eq 1 ]; then
-  kernel_type="gki"
-  ui_print "Selected: GKI"
-else
-  kernel_type="clo"
-  ui_print "Selected: CLO"
-fi
-
-# Add a brief pause between selections
-sleep 1
-
-choose_ksu
-if [ $? -eq 1 ]; then
-  ksu_type="ksu"
-  ui_print "Selected: With KSU"
-else
-  ksu_type="noksu"
-  ui_print "Selected: Without KSU"
-fi
-
-# Move selected kernel
-selected_kernel="Image.${kernel_type}.${ksu_type}"
-if [ -f "$AKHOME/$selected_kernel" ]; then
-  ui_print "Flashing: $selected_kernel"
-  mv "$AKHOME/$selected_kernel" "$AKHOME/Image"
-else
-  abort "Kernel file not found: $selected_kernel"
-fi
+# Automatic GKI KSU kernel selection
+ui_print " "
+ui_print "Flashing Kernel..."
+mv -f "$AKHOME/Image.gki.ksu" "$AKHOME/Image"
 
 # boot install
 if [ -L "/dev/block/bootdevice/by-name/init_boot_a" -o -L "/dev/block/by-name/init_boot_a" ]; then
-    split_boot
-    flash_boot
+    split_boot # for devices with init_boot ramdisk
+    flash_boot # for devices with init_boot ramdisk
 else
-    dump_boot
-    write_boot
+    dump_boot # use split_boot to skip ramdisk unpack, e.g. for devices with init_boot ramdisk
+    write_boot # use flash_boot to skip ramdisk repack, e.g. for devices with init_boot ramdisk
 fi
 ## end boot install
